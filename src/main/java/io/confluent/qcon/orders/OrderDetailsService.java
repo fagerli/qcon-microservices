@@ -19,6 +19,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +71,9 @@ public class OrderDetailsService implements Service {
                 for (ConsumerRecord<String, Order> record : records) {
                     Order order = record.value();
                     if (order.getState() == OrderState.CREATED) {
+                        OrderValidationResult result = validate(order);
+                        ProducerRecord producerRecord = record(order,result);
+                        producer.send(producerRecord);
                         // TODO: Validate the order (using validate())
                         // TODO: create a ProducerRecord from the order and result (see record())
                         // TODO: then produce the result to Kafka using the existing producer
